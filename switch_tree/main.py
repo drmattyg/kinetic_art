@@ -64,10 +64,10 @@ while True:
 		time.sleep(0.5)
 	if get_switch(limits):
 		if motor_dir.value == MOTOR_DIR_OUT:
-			motor_dir.value = not MOTOR_DIR_OUT
+			ramp_reverse()
 			led[0] = GREEN
 		else:
-			motor_dir.value = MOTOR_DIR_OUT
+			ramp_reverse()
 			led[0] = YELLOW
 			cycle_number += 1
 			if cycle_number == 3:
