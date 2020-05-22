@@ -28,6 +28,22 @@ def get_switch(dev, debounce=DEBOUNCE_NUM):
 		time.sleep(DEBOUNCE_SLEEP)
 	return True
 
+def ramp_reverse(ramp_time=50, ramp_segments=6):
+	# ramp_time is in ms
+	pwm_val = MOTOR_SPEED
+	initial_motor_dir = motor_dir.value
+	delay_time = ramp_time/ramp_segments/1000
+	for i in range(ramp_segments):
+		pwm_val = int(pwm_val - (MOTOR_SPEED/ramp_segments))
+		if pwm_val < 0:
+			motor_speed = -pwm_val
+			motor_dir.value = (not initial_motor_dir)
+		else:
+			motor_speed = pwm_val
+		pwm.duty_cycle = motor_speed
+		time.delay(delay_time)
+
+
 #limit_far = DigitalInOut(board.D2)
 trigger = DigitalInOut(board.D1)
 for pin in [limits, trigger]:
