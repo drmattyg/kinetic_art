@@ -1,45 +1,64 @@
+from time import sleep
+
 import pygame
 import numpy as np
+from math import sqrt
 BLACK = (0, 0, 0)
 SIZE = (128, 128)
+def hv(v, D=128):
+    # v: 0 -> 1
+    xv = []
+    yv = []
+    r = D/3 - 2*v*D/3 # D/3 -> -D/3
+    x0 = D/2
+    y0 = D/2 - D*v/1.5
+    for x in range(128):
+        if abs(x - x0) <= abs(r):
+            xv.append(x)
+            dx2 =(x - x0)*(x - x0)
+            y = round(sqrt(r*r - dx2) + y0)
+            if v > 0.5:
+                y = -y
+            yv.append(y)
+    return xv, yv
+
+x1, y1 = hv(0)
+x2, y2 = hv(1)
+def interp(s, k):
+    return round(y2[k] + (y1[k] - y2[k])*s)
+
+GREEN = pygame.Color(0, 255, 0)
 def main():
     pygame.init()
     screen = pygame.display.set_mode(SIZE)
-    surf = pygame.surfarray.make_surface()
-
-
-
-    screen.blit(surf, (0, 0))
-
-    pygame.display.flip()
-
+    surf = pygame.Surface(SIZE)
+    v = 0
+    dvabs = 0.01
+    dv = dvabs
+    pygame.time.set_timer(10, 50)
     while True:
+        print(v)
+        v += dv
+        if v <= 0:
+            v = 0
+            dv = dvabs
+        if v >= 1:
+            v = 1
+            dv = -dvabs
+
+        surf.fill(0)
+        pxarr = pygame.PixelArray(surf)
+        for i in range(len(x1)):
+            x = x1[i]
+            y = interp(v, i)
+            pxarr[x, y] = GREEN
+        pxarr.close()
+        screen.blit(surf, (0, 0))
+        pygame.display.flip()
         event = pygame.event.wait()
         if event.type == pygame.QUIT:
             break
     pygame.quit()
-
-def generate_graticule(count=3):
-    d = int(SIZE[0]*2/count)
-    a = np.zeros(SIZE)
-    x0 = SIZE[0]/2
-    y0 = SIZE[1]/2
-    for i in range(count):
-        a[x0 + d*i, :] = 1
-        a[x0 - d*i, :] = 1
-        a[:, y0 + d*i] = 1
-        a[:, y0 - d*i] = 1
-
-    return a
-
-def np_to_dict(n):
-    a = n.tolist()
-    d = {}
-    for i, row in enumerate(a):
-        for j, col in enumerate(row):
-            if col > 0:
-                d[(i, j)] = col
-    return d
 
 
 
