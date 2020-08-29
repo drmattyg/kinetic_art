@@ -6,7 +6,6 @@ from math import sqrt
 BLACK = (0, 0, 0)
 SIZE = (128, 128)
 def hv(v, D=128):
-    # v: 0 -> 1
     xv = []
     yv = []
     r = D/3 - 2*v*D/3 # D/3 -> -D/3
@@ -15,8 +14,7 @@ def hv(v, D=128):
     for x in range(128):
         if abs(x - x0) <= abs(r):
             xv.append(x)
-            dx2 =(x - x0)*(x - x0)
-            y = round(sqrt(r*r - dx2) + y0)
+            y = -sqrt(r**2 - (x - x0)**2) + y0
             if v > 0.5:
                 y = -y
             yv.append(y)
@@ -37,7 +35,6 @@ def main():
     dv = dvabs
     pygame.time.set_timer(10, 50)
     while True:
-        print(v)
         v += dv
         if v <= 0:
             v = 0
@@ -45,6 +42,8 @@ def main():
         if v >= 1:
             v = 1
             dv = -dvabs
+
+        # test
 
         surf.fill(0)
         pxarr = pygame.PixelArray(surf)
