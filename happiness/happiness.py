@@ -9,8 +9,8 @@ def happiness(v, D=128):
     xv = []
     yv = []
     r = D/3 - 2*v*D/3 # D/3 -> -D/3
-    x0 = D/2
-    y0 = D/2 - D*v/1.5
+    x0 = D/2 - 6
+    y0 = D/2 - v*(D/1.5 + 30) + 10
     for x in range(128):
         if abs(x - x0) <= abs(r):
             xv.append(x)
@@ -50,6 +50,8 @@ while True:
     v = analog_in.value/65536
     c = len(x1)
     for i in range(xc):
-        bitmap[x1[i], yv[i]] = 0
+        bitmap[yv[i], x1[i]] = 0
         yv[i] = interp(v, i)
-        bitmap[x1[i], yv[i]] = 1
+        bitmap[yv[i], x1[i]] = 1
+
+    time.sleep(0.01)
