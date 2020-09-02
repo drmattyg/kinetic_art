@@ -30,11 +30,24 @@ def interp(s, k):
 analog_in = AnalogIn(board.A1)
 
 spi = board.SPI()
-tft_cs = board.D5
-tft_dc = board.D6
+METRO_PINS = {
+    'cs': board.D5,
+    'dc': board.D6,
+    'reset': board.D9
+}
+
+ITSY_BITSY_PINS =  {
+    'cs': board.D7,
+    'dc': board.D9,
+    'reset': board.D10
+}
+
+PINS = ITSY_BITSY_PINS
+tft_cs = PINS['cs']
+tft_dc = PINS['dc']
 
 displayio.release_displays()
-display_bus = displayio.FourWire(spi, command=tft_dc, chip_select=tft_cs, reset=board.D9)
+display_bus = displayio.FourWire(spi, command=tft_dc, chip_select=tft_cs, reset=PINS['reset'])
 
 display = SSD1351(display_bus, width=128, height=128)
 
