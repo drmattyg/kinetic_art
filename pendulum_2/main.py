@@ -10,6 +10,7 @@ import pwmio
 DELAY = 40
 THRESHOLD = 50000
 POLL_TIME = 1
+TEST = True
 
 # initialize
 def init_audio_output(d):
@@ -19,13 +20,13 @@ def init_audio_output(d):
     return out
 
 # audio relays
-[audio1, audio2] = [init_audio_output(d) for d in [board.D3, board.D4]]
+[audio1, audio2] = [init_audio_output(d) for d in [board.D9, board.D10]]
 
 # rail sensors
 [sense1, sense2] = [AnalogIn(d) for d in [board.A1, board.A2]]
 
 # LEFT OFF HERE FIX SERVO CODE
-pwms = [pwmio.PWMOut(_pin, duty_cycle=2 ** 15, frequency=50) for _pin in [board.A6, board.A7]
+pwms = [pwmio.PWMOut(_pin, duty_cycle=2 ** 15, frequency=50) for _pin in [board.A4, board.A5]
 [servo1, servo2] = [servo.Servo(_pwm) for _pwm in pwms]
 
 # distance sensor
@@ -34,7 +35,7 @@ tof = adafruit_vl53l0x.VL53L0X(i2c)
 # tof.range is the range in mm
 
 # mode switch
-mode = DigitalInOut(board.D5)
+mode = DigitalInOut(board.D13)
 mode.direction = Direction.INPUT
 mode.pull = digitalio.Pull.UP
 def is_ranging_mode():
@@ -82,14 +83,19 @@ def debounce(n, v):
 
 
 while True:
-    # switch the audio output based on sensor mode
-    sense_n1, b1 = debounce(sense_n1, sense1)
-    sense_n2, b2 = debounce(sense_n2, sense2)
-    audio1.value = b1
-    audio2.value = b2
+    if TEST:
+        print("sense1: ", sense1.value)
+        print("sense2: ", sense2.value)
+        print("mode: ", mode.value)
+    else:
+        # switch the audio output based on sensor mode
+        sense_n1, b1 = debounce(sense_n1, sense1)
+        sense_n2, b2 = debounce(sense_n2, sense2)
+        audio1.value = b1
+        audio2.value = b2
 
-    # to tilt or not to tilt?
-    # every POLL_TIME seconds, pick a random number, and if it is lower than the threshold, tilt.
-    # if ON, which is (auto_mode | distance < distance_threshold)
+        # to tilt or not to tilt?
+        # every POLL_TIME seconds, pick a random number, and if it is lower than the threshold, tilt.
+        # if ON, which is (auto_mode | distance < distance_threshold)
 
 
