@@ -6,15 +6,11 @@ import adafruit_vl53l0x
 import busio
 from adafruit_motor import servo
 import pwmio
-from random import random, choice
 
 DELAY = 40
 THRESHOLD = 50000
 POLL_TIME = 1000 # ms
 TILT_THRESHOLD = 0.2
-SERVO_STEP = 0.05
-SERVO_TARGETS = [5, 5]
-SERVO_CENTERS = [90, 90]
 
 # initialize
 def init_audio_output(d):
@@ -24,19 +20,17 @@ def init_audio_output(d):
     return out
 
 # audio relays
-audios = [init_audio_output(d) for d in [board.D3, board.D4]]
+[audio1, audio2] = [init_audio_output(d) for d in [board.D3, board.D4]]
 
 # rail sensors
-sensors = [AnalogIn(d) for d in [board.A1, board.A2]]
+[sense1, sense2] = [AnalogIn(d) for d in [board.A1, board.A2]]
 
-def init_servo(pin):
-    return servo.Servo(pwmio.PWMOut(pin, duty_cycle=2 ** 15, frequency=50))
-servos = [init_servo(pin) for pin in [board.A13, board.A14]
-
+pwms = [pwmio.PWMOut(_pin, duty_cycle=2 ** 15, frequency=50) for _pin in [board.A6, board.A7]
+[servo1, servo2] = [servo.Servo(_pwm) for _pwm in pwms]
 
 # distance sensor
-# i2c = busio.I2C(board.SCL, board.SDA)
-# tof = adafruit_vl53l0x.VL53L0X(i2c)
+i2c = busio.I2C(board.SCL, board.SDA)
+tof = adafruit_vl53l0x.VL53L0X(i2c)
 # tof.range is the range in mm
 
 # mode switch
@@ -47,7 +41,8 @@ def is_ranging_mode():
     return mode.value
 
 # rail sensor threshold counter
-sensor_threshold_counters = [0, 0]
+sense_n1 = 0
+sense_n2 = 0
 
 def tilt_servo(s, degrees=15, pause_time=0.5, lr=True, servo_cycle_wait=0.02):
     # Assume servo starts at center (90 degrees)
@@ -86,10 +81,6 @@ def debounce(n, v):
 
 
 t0 = monotonic()
-t_poll = t0
-t_servo = t0
-servo_targets = list(SERVO_CENTERS)
-servo_lr = [1, 1]
 while True:
     # switch the audio output based on sensor mode
     sense_n1, b1 = debounce(sense_n1, sense1)
@@ -102,13 +93,5 @@ while True:
     # if ON, which is (auto_mode | distance < distance_threshold)
     if (monotonic() - t0) > POLL_TIME:
         t0 = monotonic()
-        if random() < TILT_THRESHOLD:
-            # pick top or bottom
-            tb = choice([0, 1])
-            if servo_targets[tb] != servos[tb].angle:
-            # pick lr and set the servo target
-            servo_lr[tb] = choice([1, -1])
-            servo_targets[tb] = SERVO_CENTERS[tb] + lr*SERVO_TARGETS[tb]
+        if random() <
 
-    for i in [0, 1]:
-        if servo_target[tb]
