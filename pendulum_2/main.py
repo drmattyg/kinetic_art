@@ -1,5 +1,5 @@
 import board
-from time import sleep
+from time import sleep, monotonic
 from digitalio import DigitalInOut, Direction
 from analogio import AnalogIn
 import adafruit_vl53l0x
@@ -9,7 +9,8 @@ import pwmio
 
 DELAY = 40
 THRESHOLD = 50000
-POLL_TIME = 1
+POLL_TIME = 1000 # ms
+TILT_THRESHOLD = 0.2
 
 # initialize
 def init_audio_output(d):
@@ -24,7 +25,6 @@ def init_audio_output(d):
 # rail sensors
 [sense1, sense2] = [AnalogIn(d) for d in [board.A1, board.A2]]
 
-# LEFT OFF HERE FIX SERVO CODE
 pwms = [pwmio.PWMOut(_pin, duty_cycle=2 ** 15, frequency=50) for _pin in [board.A6, board.A7]
 [servo1, servo2] = [servo.Servo(_pwm) for _pwm in pwms]
 
@@ -80,7 +80,7 @@ def debounce(n, v):
     return n, b
 
 
-
+t0 = monotonic()
 while True:
     # switch the audio output based on sensor mode
     sense_n1, b1 = debounce(sense_n1, sense1)
@@ -89,7 +89,9 @@ while True:
     audio2.value = b2
 
     # to tilt or not to tilt?
-    # every POLL_TIME seconds, pick a random number, and if it is lower than the threshold, tilt.
+    # every POLL_TIME ms, pick a random number, and if it is lower than the threshold, tilt.
     # if ON, which is (auto_mode | distance < distance_threshold)
-
+    if (monotonic() - t0) > POLL_TIME:
+        t0 = monotonic()
+        if random() <
 
