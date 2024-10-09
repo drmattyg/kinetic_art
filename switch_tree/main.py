@@ -11,6 +11,10 @@ MOTOR_DIR_OUT = False
 MOTOR_SPEED = int(65535/1.5)
 
 
+# motor dir = D4
+# motor pwm = A2 = D0
+# limits = D3
+# trigger = D1
 
 led = adafruit_dotstar.DotStar(board.APA102_SCK, board.APA102_MOSI, 1)
 pwm = pulseio.PWMOut(board.A2, frequency=5000, duty_cycle=0)

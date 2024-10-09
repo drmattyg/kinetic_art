@@ -12,9 +12,11 @@ DELAY = 40
 THRESHOLD = 50000
 POLL_TIME = 1000 # ms
 TILT_THRESHOLD = 0.2
-SERVO_STEP = 0.05
+SERVO_STEP = 0.2
 SERVO_TARGETS = [5, 5]
 SERVO_CENTERS = [90, 90]
+POLL_TIME = 1
+TEST = True
 
 # initialize
 def init_audio_output(d):
@@ -33,14 +35,13 @@ def init_servo(pin):
     return servo.Servo(pwmio.PWMOut(pin, duty_cycle=2 ** 15, frequency=50))
 servos = [init_servo(pin) for pin in [board.A13, board.A14]
 
-
 # distance sensor
 # i2c = busio.I2C(board.SCL, board.SDA)
 # tof = adafruit_vl53l0x.VL53L0X(i2c)
 # tof.range is the range in mm
 
 # mode switch
-mode = DigitalInOut(board.D5)
+mode = DigitalInOut(board.D13)
 mode.direction = Direction.INPUT
 mode.pull = digitalio.Pull.UP
 def is_ranging_mode():
@@ -91,11 +92,17 @@ t_servo = t0
 servo_targets = list(SERVO_CENTERS)
 servo_lr = [1, 1]
 while True:
-    # switch the audio output based on sensor mode
-    sense_n1, b1 = debounce(sense_n1, sense1)
-    sense_n2, b2 = debounce(sense_n2, sense2)
-    audio1.value = b1
-    audio2.value = b2
+    if TEST:
+        print("sense1: ", sense1.value)
+        print("sense2: ", sense2.value)
+        print("mode: ", mode.value)
+    else:
+        # switch the audio output based on sensor mode
+        sense_n1, b1 = debounce(sense_n1, sense1)
+        sense_n2, b2 = debounce(sense_n2, sense2)
+        audio1.value = b1
+        audio2.value = b2
+
 
     # to tilt or not to tilt?
     # every POLL_TIME ms, pick a random number, and if it is lower than the threshold, tilt.
@@ -111,4 +118,5 @@ while True:
             servo_targets[tb] = SERVO_CENTERS[tb] + lr*SERVO_TARGETS[tb]
 
     for i in [0, 1]:
-        if servo_target[tb]
+        if servo_target[tb] != servos[tb].angle:
+            servos[tb].angle = servos[tb].angle + servo_lr[tb]*SERVO_STEP
