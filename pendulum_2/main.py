@@ -1,6 +1,6 @@
 import board
 from time import sleep
-from digitalio import DigitalInOut, Direction
+from digitalio import DigitalInOut, Direction, Pull
 from analogio import AnalogIn
 import adafruit_vl53l0x
 import busio
@@ -20,14 +20,14 @@ def init_audio_output(d):
     return out
 
 # audio relays
-[audio1, audio2] = [init_audio_output(d) for d in [board.D9, board.D10]]
+audio1, audio2 = [init_audio_output(d) for d in [board.D9, board.D10]]
 
 # rail sensors
-[sense1, sense2] = [AnalogIn(d) for d in [board.A1, board.A2]]
+sense1, sense2 = [AnalogIn(d) for d in [board.A1, board.A2]]
 
 # LEFT OFF HERE FIX SERVO CODE
-pwms = [pwmio.PWMOut(_pin, duty_cycle=2 ** 15, frequency=50) for _pin in [board.A4, board.A5]
-[servo1, servo2] = [servo.Servo(_pwm) for _pwm in pwms]
+pwms = [pwmio.PWMOut(_pin, duty_cycle=2 ** 15, frequency=50) for _pin in [board.D11, board.D12]]
+servo1, servo2 = [servo.Servo(p) for p in pwms]
 
 # distance sensor
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -37,7 +37,7 @@ tof = adafruit_vl53l0x.VL53L0X(i2c)
 # mode switch
 mode = DigitalInOut(board.D13)
 mode.direction = Direction.INPUT
-mode.pull = digitalio.Pull.UP
+mode.pull = Pull.UP
 def is_ranging_mode():
     return mode.value
 
@@ -87,6 +87,7 @@ while True:
         print("sense1: ", sense1.value)
         print("sense2: ", sense2.value)
         print("mode: ", mode.value)
+        print("range:", tof.range)
     else:
         # switch the audio output based on sensor mode
         sense_n1, b1 = debounce(sense_n1, sense1)
