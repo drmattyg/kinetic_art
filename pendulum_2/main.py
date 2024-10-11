@@ -47,37 +47,40 @@ mode.pull = Pull.UP
 def is_ranging_mode():
     return mode.value
 
+sensor_threshold = [0, 0]
 # rail sensor threshold counter
 sensor_threshold_counters = [0, 0]
+sensor_delay = [DELAY, DELAY]
 
-def tilt_servo(s, degrees=15, pause_time=0.5, lr=True, servo_cycle_wait=0.02):
-    # Assume servo starts at center (90 degrees)
-    center_position = 90
+# def tilt_servo(s, degrees=15, pause_time=0.5, lr=True, servo_cycle_wait=0.02):
+#     # Assume servo starts at center (90 degrees)
+#     center_position = 90
 
-    # Tilt direction: left if lr is True, right if lr is False
-    if lr:
-        target_position = center_position - degrees  # Tilt to the left by n degrees
-    else:
-        target_position = center_position + degrees  # Tilt to the right by n degrees
+#     # Tilt direction: left if lr is True, right if lr is False
+#     if lr:
+#         target_position = center_position - degrees  # Tilt to the left by n degrees
+#     else:
+#         target_position = center_position + degrees  # Tilt to the right by n degrees
 
-    # Smoothly tilt to the target position
-    step = -1 if lr else 1
-    for angle in range(center_position, target_position + step, step):
-        s.angle = angle
-        time.sleep(servo_cycle_wait)  # Adjust this value for smoother or faster movement
+#     # Smoothly tilt to the target position
+#     step = -1 if lr else 1
+#     for angle in range(center_position, target_position + step, step):
+#         s.angle = angle
+#         time.sleep(servo_cycle_wait)  # Adjust this value for smoother or faster movement
 
-    # Pause for t seconds
-    time.sleep(pause_time)
+#     # Pause for t seconds
+#     time.sleep(pause_time)
 
-def debounce(n, v):
-
-    if v < THRESHOLD:
+def debounce(i):
+    n = sensor_threshold_counters[i]
+    v = sensors[i].value
+    if v < sensor_threshold[i]:
         n = 1
     else:
         if n == 0:
             return 0, False
         n += 1
-        if n > DELAY:
+        if n > sensor_delay[i]:
             n = 0
     if n == 0:
         b = False
@@ -92,17 +95,16 @@ t_servo = t0
 servo_targets = list(SERVO_CENTERS)
 servo_lr = [1, 1]
 while True:
-    if TEST:
-        print("sense1: ", sense1.value)
-        print("sense2: ", sense2.value)
-        print("mode: ", mode.value)
-        print("range:", tof.range)
-    else:
+    # if TEST:
+    #     print("sense1: ", sense1.value)
+    #     print("sense2: ", sense2.value)
+    #     print("mode: ", mode.value)
+    #     print("range:", tof.range)
+    # else:
         # switch the audio output based on sensor mode
-        sense_n1, b1 = debounce(sense_n1, sense1)
-        sense_n2, b2 = debounce(sense_n2, sense2)
-        audio1.value = b1
-        audio2.value = b2
+    for i in [0, 1]:
+        sensor_threshold_counters[i], b = debounce(i)
+        audios[i].value = b
 
 
     # to tilt or not to tilt?
