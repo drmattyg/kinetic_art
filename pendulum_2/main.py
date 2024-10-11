@@ -52,6 +52,8 @@ sensor_threshold = [0, 0]
 sensor_threshold_counters = [0, 0]
 sensor_delay = [DELAY, DELAY]
 
+t0 = monotonic()
+
 # def tilt_servo(s, degrees=15, pause_time=0.5, lr=True, servo_cycle_wait=0.02):
 #     # Assume servo starts at center (90 degrees)
 #     center_position = 90
@@ -89,11 +91,12 @@ def debounce(i):
     return n, b
 
 
-t0 = monotonic()
+
 t_poll = t0
 t_servo = t0
 servo_targets = list(SERVO_CENTERS)
-servo_lr = [1, 1]
+servo_lr = [1, 1] # set the sense (positive or negative) of the servo target direction
+servo_moving = [0, 0] # 0 = Not moving, 1 = Moving out, 2 = Moving back
 while True:
     # if TEST:
     #     print("sense1: ", sense1.value)
@@ -118,8 +121,19 @@ while True:
             if servo_targets[tb] != servos[tb].angle:
             # pick lr and set the servo target
             servo_lr[tb] = choice([1, -1])
-            servo_targets[tb] = SERVO_CENTERS[tb] + lr*SERVO_TARGETS[tb]
 
+            # set the servo target angle
+            servo_targets[tb] = SERVO_CENTERS[tb] + lr*SERVO_TARGETS[tb]
+            servo_moving[tb] = 1
+
+    # rock the servo out and back
     for i in [0, 1]:
-        if servo_target[tb] != servos[tb].angle:
-            servos[tb].angle = servos[tb].angle + servo_lr[tb]*SERVO_STEP
+        if servo_target[tb] != servos[tb].angle: # if we're not at our target angle
+            servos[tb].angle = servos[tb].angle + servo_lr[tb]*SERVO_STEP #take a step towards our target angle
+        else:
+            if servo_moving[tb] == 1:  # if we're at the target, and we're still in motion
+                servo_target[tb] = SERVO_CENTERS[tb] # set the target back to the center
+                servo_lr[tb] = -servo_lr[tb] # reverse direction
+            elif servo_moving[tb] == 2: # if we were on our way back and we're at the target angle
+                servo_moving[tb] = 0 # stop moving
+
