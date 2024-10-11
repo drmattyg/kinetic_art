@@ -32,7 +32,7 @@ audios = [init_audio_output(d) for d in [board.D3, board.D4]]
 sensors = [AnalogIn(d) for d in [board.A1, board.A2]]
 
 def init_servo(pin):
-    return servo.Servo(pwmio.PWMOut(pin, duty_cycle=2 ** 15, frequency=50))
+    return servo.Servo(pwmio.PWMOut(pin, frequency=50))
 servos = [init_servo(pin) for pin in [board.D11, board.D12]]
 
 # distance sensor
@@ -129,7 +129,12 @@ while True:
     # rock the servo out and back
     for tb in [0, 1]:
         if servo_target[tb] != servos[tb].angle: # if we're not at our target angle
-            servos[tb].angle = servos[tb].angle + servo_lr[tb]*SERVO_STEP #take a step towards our target angle
+
+            a = servos[tb].angle + servo_lr[tb]*SERVO_STEP
+            print(servos[tb].angle)
+            print(servo_lr[tb])
+            print(a)
+            servos[tb].angle = a #take a step towards our target angle
         else:
             if servo_moving[tb] == 1:  # if we're at the target, and we're still in motion
                 servo_target[tb] = SERVO_CENTERS[tb] # set the target back to the center
