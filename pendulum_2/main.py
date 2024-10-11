@@ -2,7 +2,7 @@ import board
 from digitalio import DigitalInOut, Direction, Pull
 from time import sleep, monotonic
 from analogio import AnalogIn
-import adafruit_vl53l0x
+#import adafruit_vl53l0x
 import busio
 from adafruit_motor import servo
 import pwmio
@@ -33,7 +33,7 @@ sensors = [AnalogIn(d) for d in [board.A1, board.A2]]
 
 def init_servo(pin):
     return servo.Servo(pwmio.PWMOut(pin, duty_cycle=2 ** 15, frequency=50))
-servos = [init_servo(pin) for pin in [board.A13, board.A14]]
+servos = [init_servo(pin) for pin in [board.D11, board.D12]]
 
 # distance sensor
 # i2c = busio.I2C(board.SCL, board.SDA)
@@ -94,7 +94,7 @@ def debounce(i):
 
 t_poll = t0
 t_servo = t0
-servo_targets = list(SERVO_CENTERS)
+servo_target = list(SERVO_CENTERS)
 servo_lr = [1, 1] # set the sense (positive or negative) of the servo target direction
 servo_moving = [0, 0] # 0 = Not moving, 1 = Moving out, 2 = Moving back
 while True:
@@ -118,16 +118,16 @@ while True:
         if random() < TILT_THRESHOLD:
             # pick top or bottom
             tb = choice([0, 1])
-            if servo_targets[tb] != servos[tb].angle:
+            if servo_target[tb] != servos[tb].angle:
             # pick lr and set the servo target
-            servo_lr[tb] = choice([1, -1])
+                servo_lr[tb] = choice([1, -1])
 
             # set the servo target angle
-            servo_targets[tb] = SERVO_CENTERS[tb] + lr*SERVO_TARGETS[tb]
+            servo_target[tb] = SERVO_CENTERS[tb] + lr*SERVO_TARGETS[tb]
             servo_moving[tb] = 1
 
     # rock the servo out and back
-    for i in [0, 1]:
+    for tb in [0, 1]:
         if servo_target[tb] != servos[tb].angle: # if we're not at our target angle
             servos[tb].angle = servos[tb].angle + servo_lr[tb]*SERVO_STEP #take a step towards our target angle
         else:
