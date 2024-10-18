@@ -121,19 +121,23 @@ while True:
         print("bar")
         t0 = monotonic()
         if random() < TILT_THRESHOLD:
+            print('tilt')
             # pick top or bottom
             tb = choice([0, 1])
-            if servo_target[tb] != servos[tb].angle:
+            if servo_moving[tb] == 0: # servo is stationary
             # pick lr and set the servo target
                 servo_lr[tb] = choice([1, -1])
 
-            # set the servo target angle
-            servo_target[tb] = SERVO_CENTERS[tb] + servo_lr[tb]*SERVO_TARGETS[tb]
-            servo_moving[tb] = 1
+                # set the servo target angle
+                servo_target[tb] = SERVO_CENTERS[tb] + servo_lr[tb]*SERVO_TARGETS[tb]
+                servo_moving[tb] = 1
+            print(servo_target)
 
     # rock the servo out and back
     for tb in [0, 1]:
-        if abs(servo_target[tb] - servos[tb].angle) < ANGLE_SLOP: # if we're not at our target angle
+#        servo_diff = abs(servo_target[tb] - servos[tb].angle)
+#        print(servo_diff, ANGLE_SLOP)
+        if abs(servo_target[tb] - servos[tb].angle) > ANGLE_SLOP: # if we're not at our target angle
             print("foo")
             a = servos[tb].angle + servo_lr[tb]*SERVO_STEP
             print(servos[tb].angle)
@@ -144,6 +148,7 @@ while True:
             if servo_moving[tb] == 1:  # if we're at the target, and we're still in motion
                 servo_target[tb] = SERVO_CENTERS[tb] # set the target back to the center
                 servo_lr[tb] = -servo_lr[tb] # reverse direction
+                servo_moving[tb] = 2
             elif servo_moving[tb] == 2: # if we were on our way back and we're at the target angle
                 servo_moving[tb] = 0 # stop moving
 
