@@ -17,6 +17,7 @@ SERVO_TARGETS = [5, 5]
 SERVO_CENTERS = [90, 90]
 POLL_TIME = 1
 TEST = True
+ANGLE_SLOP = 1
 
 # initialize
 def init_audio_output(d):
@@ -26,7 +27,7 @@ def init_audio_output(d):
     return out
 
 # audio relays
-audios = [init_audio_output(d) for d in [board.D3, board.D4]]
+audios = [init_audio_output(d) for d in [board.D10, board.D9]]
 
 # rail sensors
 sensors = [AnalogIn(d) for d in [board.A1, board.A2]]
@@ -34,7 +35,9 @@ sensors = [AnalogIn(d) for d in [board.A1, board.A2]]
 def init_servo(pin):
     return servo.Servo(pwmio.PWMOut(pin, frequency=50))
 servos = [init_servo(pin) for pin in [board.D11, board.D12]]
-
+for i in [0, 1]:
+    servos[i].angle = SERVO_CENTERS[i]
+print(servos[0].angle, servos[1].angle)
 # distance sensor
 # i2c = busio.I2C(board.SCL, board.SDA)
 # tof = adafruit_vl53l0x.VL53L0X(i2c)
@@ -47,7 +50,7 @@ mode.pull = Pull.UP
 def is_ranging_mode():
     return mode.value
 
-sensor_threshold = [0, 0]
+sensor_threshold = [50000, 50000]
 # rail sensor threshold counter
 sensor_threshold_counters = [0, 0]
 sensor_delay = [DELAY, DELAY]
@@ -80,14 +83,14 @@ def debounce(i):
         n = 1
     else:
         if n == 0:
-            return 0, False
+            return 0, True
         n += 1
         if n > sensor_delay[i]:
             n = 0
     if n == 0:
-        b = False
-    else:
         b = True
+    else:
+        b = False
     return n, b
 
 
@@ -113,7 +116,9 @@ while True:
     # to tilt or not to tilt?
     # every POLL_TIME ms, pick a random number, and if it is lower than the threshold, tilt.
     # if ON, which is (auto_mode | distance < distance_threshold)
+
     if (monotonic() - t0) > POLL_TIME:
+        print("bar")
         t0 = monotonic()
         if random() < TILT_THRESHOLD:
             # pick top or bottom
@@ -123,13 +128,13 @@ while True:
                 servo_lr[tb] = choice([1, -1])
 
             # set the servo target angle
-            servo_target[tb] = SERVO_CENTERS[tb] + lr*SERVO_TARGETS[tb]
+            servo_target[tb] = SERVO_CENTERS[tb] + servo_lr[tb]*SERVO_TARGETS[tb]
             servo_moving[tb] = 1
 
     # rock the servo out and back
     for tb in [0, 1]:
-        if servo_target[tb] != servos[tb].angle: # if we're not at our target angle
-
+        if abs(servo_target[tb] - servos[tb].angle) < ANGLE_SLOP: # if we're not at our target angle
+            print("foo")
             a = servos[tb].angle + servo_lr[tb]*SERVO_STEP
             print(servos[tb].angle)
             print(servo_lr[tb])
