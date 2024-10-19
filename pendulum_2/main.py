@@ -11,11 +11,12 @@ from random import random, choice
 DELAY = 40
 THRESHOLD = 50000
 POLL_TIME = 1000 # ms
-TILT_THRESHOLD = 0.2
-SERVO_STEP = 0.2
-SERVO_TARGETS = [5, 5]
-SERVO_CENTERS = [90, 90]
-POLL_TIME = 1
+TILT_THRESHOLD = 0.0005
+SERVO_STEP = 1
+SERVO_TARGETS = [15, 15]
+SERVO_CENTERS = [85, 90]
+POLL_TIME = 10
+SERVO_TIME = 0.02
 TEST = True
 ANGLE_SLOP = 1
 
@@ -37,7 +38,7 @@ def init_servo(pin):
 servos = [init_servo(pin) for pin in [board.D11, board.D12]]
 for i in [0, 1]:
     servos[i].angle = SERVO_CENTERS[i]
-print(servos[0].angle, servos[1].angle)
+#print(servos[0].angle, servos[1].angle)
 # distance sensor
 # i2c = busio.I2C(board.SCL, board.SDA)
 # tof = adafruit_vl53l0x.VL53L0X(i2c)
@@ -117,38 +118,42 @@ while True:
     # every POLL_TIME ms, pick a random number, and if it is lower than the threshold, tilt.
     # if ON, which is (auto_mode | distance < distance_threshold)
 
-    if (monotonic() - t0) > POLL_TIME:
-        print("bar")
+    if (monotonic() - t_poll) > POLL_TIME:
+#        print("bar")
         t0 = monotonic()
         if random() < TILT_THRESHOLD:
-            print('tilt')
+ #           print('tilt')
             # pick top or bottom
             tb = choice([0, 1])
             if servo_moving[tb] == 0: # servo is stationary
+                #print('tilt ', tb)
             # pick lr and set the servo target
                 servo_lr[tb] = choice([1, -1])
 
                 # set the servo target angle
                 servo_target[tb] = SERVO_CENTERS[tb] + servo_lr[tb]*SERVO_TARGETS[tb]
                 servo_moving[tb] = 1
-            print(servo_target)
+ #           print(servo_target)
 
     # rock the servo out and back
-    for tb in [0, 1]:
-#        servo_diff = abs(servo_target[tb] - servos[tb].angle)
-#        print(servo_diff, ANGLE_SLOP)
-        if abs(servo_target[tb] - servos[tb].angle) > ANGLE_SLOP: # if we're not at our target angle
-            print("foo")
-            a = servos[tb].angle + servo_lr[tb]*SERVO_STEP
-            print(servos[tb].angle)
-            print(servo_lr[tb])
-            print(a)
-            servos[tb].angle = a #take a step towards our target angle
-        else:
-            if servo_moving[tb] == 1:  # if we're at the target, and we're still in motion
-                servo_target[tb] = SERVO_CENTERS[tb] # set the target back to the center
-                servo_lr[tb] = -servo_lr[tb] # reverse direction
-                servo_moving[tb] = 2
-            elif servo_moving[tb] == 2: # if we were on our way back and we're at the target angle
-                servo_moving[tb] = 0 # stop moving
+    # TODO: make this poll and move slower
+    if (monotonic() - t_servo) > SERVO_TIME:
+        t_servo = monotonic()
+        for tb in [0, 1]:
+    #        servo_diff = abs(servo_target[tb] - servos[tb].angle)
+    #        print(servo_diff, ANGLE_SLOP)
+            if abs(servo_target[tb] - servos[tb].angle) > ANGLE_SLOP: # if we're not at our target angle
+  #              print("foo")
+                a = servos[tb].angle + servo_lr[tb]*SERVO_STEP
+  #              print(servos[tb].angle)
+  #              print(servo_lr[tb])
+   #             print(a)
+                servos[tb].angle = a #take a step towards our target angle
+            else:
+                if servo_moving[tb] == 1:  # if we're at the target, and we're still in motion
+                    servo_target[tb] = SERVO_CENTERS[tb] # set the target back to the center
+                    servo_lr[tb] = -servo_lr[tb] # reverse direction
+                    servo_moving[tb] = 2
+                elif servo_moving[tb] == 2: # if we were on our way back and we're at the target angle
+                    servo_moving[tb] = 0 # stop moving
 
